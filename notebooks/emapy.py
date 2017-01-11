@@ -564,7 +564,7 @@ def getAmenityInfoIntoPolygon(polygon, amenityType='pub', timeOutWaitExcept = 30
     #http://wiki.openstreetmap.org/wiki/Key:amenity
     
     s = polygonArrayToOSMstructure(polygon)
-    sql = "(node[amenity='" + amenityType + "']"+ s +";);out center;"
+    sql = "(node[amenity='" + amenityType + "']"+ s +";);out ;"
     allData = []
     try:
         allData = apiOverPass.Get(sql)
@@ -577,7 +577,7 @@ def getAmenityInfoIntoPolygon(polygon, amenityType='pub', timeOutWaitExcept = 30
 
 def getAmenityInfoIntoBoundingBox(boundingBoxSearch, amenityType='pub', timeOutWaitExcept = 30):
     #http://wiki.openstreetmap.org/wiki/Key:amenity
-    sql = "(node[amenity='" + amenityType + "']"+ str(boundingBoxSearch).encode("utf-8") +";);out center;"
+    sql = "(node[amenity='" + amenityType + "']"+ str(boundingBoxSearch).encode("utf-8") +";);out ;"
     allData = []
     try:
         allData = apiOverPass.Get(sql)
@@ -689,11 +689,6 @@ def getPerimeterOfDictWithPolygons(dictionary):
     print len(arrPoly)
     print len(tmpArr)
     return tmpArr
-
-
-# In[ ]:
-
-
 
 
 # In[27]:
