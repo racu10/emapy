@@ -18,8 +18,8 @@ import time
 import unicodedata
 
 import sys;
-#reload(sys);
-#sys.setdefaultencoding("utf8")
+reload(sys);
+sys.setdefaultencoding("utf8")
 
 MyApi = OsmApi()
 apiOverPass = overpass.API()
@@ -241,7 +241,7 @@ def getPointOfStreet(streetName, boundingBoxSearch):
 # In[8]:
 
 def getPointOfStreetPolygon(streetName, polygon): 
-    """    getPointOfStreet(streetName, boundingBoxSearch)
+    """    getPointOfStreet(streetName, polygon)
 
     Get all points of the street localizated into polygon
     
@@ -249,7 +249,7 @@ def getPointOfStreetPolygon(streetName, polygon):
     ----------
     streetName : float
         Name of the street you are looking the points.
-    boundingBoxSearch : tuple 
+    polygon : tuple 
             Polygon coordinates to limit the map.
     
     Returns
@@ -974,7 +974,9 @@ def transformPandasToStructureInfo(pd,
                                    colY = 0, 
                                    ifIsPolygonIsXY = True, 
                                    isUTM = False, 
-                                   zoneUTM = 31):
+                                   zoneUTM = 31,
+                                   northernHemisphere = True
+                                  ):
     lst = []    
     for d in pd[:].iterrows():
         if d[1][1] != -1:           
@@ -1016,28 +1018,29 @@ def getDatabase(name,
                 colLat = 1, columnName = '', 
                 ifIsPolygonIsXY = True, 
                 isUTM = False, 
-                zoneUTM = 31):
+                zoneUTM = 31,
+                northernHemisphere = True):
     allData = []
     name = name.strip().lower()
     if extension.strip().lower() == 'csv':
         allData = getDataOfCsv(path.strip().lower(), sep)
         if isPolygon == False:
-            return [name, transformPandasToStructureInfo(allData, 'point', colPolygonOrLong, colLat, ifIsPolygonIsXY, isUTM,zoneUTM)]
+            return [name, transformPandasToStructureInfo(allData, 'point', colPolygonOrLong, colLat, ifIsPolygonIsXY, isUTM,zoneUTM,northernHemisphere)]
         else:
-            return [name, transformPandasToStructureInfo(allData, 'polygon', colPolygonOrLong, colLat, ifIsPolygonIsXY, isUTM,zoneUTM)]
+            return [name, transformPandasToStructureInfo(allData, 'polygon', colPolygonOrLong, colLat, ifIsPolygonIsXY, isUTM,zoneUTM,northernHemisphere)]
     elif extension.strip().lower() == 'json':
         allData = pandasReadJson(path)
         if isPolygon == False:
-            return [name, transformPandasToStructureInfo(allData, 'point', colPolygonOrLong, colLat, ifIsPolygonIsXY, isUTM,zoneUTM)]
+            return [name, transformPandasToStructureInfo(allData, 'point', colPolygonOrLong, colLat, ifIsPolygonIsXY, isUTM,zoneUTM,northernHemisphere)]
         else:
-            return [name, transformPandasToStructureInfo(allData, 'polygon', colPolygonOrLong, colLat, ifIsPolygonIsXY, isUTM,zoneUTM)]           
+            return [name, transformPandasToStructureInfo(allData, 'polygon', colPolygonOrLong, colLat, ifIsPolygonIsXY, isUTM,zoneUTM,northernHemisphere)]           
     elif extension.strip().lower() == 'geojson':
         return [name, getAllBarrisBCNPoligonBox(path, columnName, True)]
     elif extension.strip().lower() == 'bcnbikes':        
         return [name, transformPandasToStructureInfo(getNowBikesInBcn(), 'point', 'lng', 'lat', True, True, 31)]
     elif extension.strip().lower() == 'df' or  extension.strip().lower() == 'pandas':
         if isPolygon == False:
-            return [name, transformPandasToStructureInfo(path, 'point', colPolygonOrLong, colLat, ifIsPolygonIsXY, isUTM,zoneUTM)]
+            return [name, transformPandasToStructureInfo(path, 'point', colPolygonOrLong, colLat, ifIsPolygonIsXY, isUTM,zoneUTM,)]
         else:
             return [name, transformPandasToStructureInfo(path, 'polygon', colPolygonOrLong, colLat, ifIsPolygonIsXY, isUTM,zoneUTM)]
 
@@ -1046,6 +1049,8 @@ def getDatabase(name,
 
 
 # In[42]:
+
+#http://wiki.openstreetmap.org/wiki/Key:amenity
 
 def getDatabaseFromOSM(name, 
                        type = 'amenity|node|way', 
@@ -1057,7 +1062,7 @@ def getDatabaseFromOSM(name,
     
     if searchByPolygon == True and ifIsPolygonIsXY == True:
         boundingBoxOrPolygon = transformArrYXToXYList(boundingBoxOrPolygon)
-    
+
     allData = []
     name = name.strip().lower()
     if type.strip().lower() == 'amenity':
