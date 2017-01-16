@@ -69,3 +69,6 @@ target/
 # Jupyter NB Checkpoints
 .ipynb_checkpoints/
 
+# PYPI
+.pypirc
+
