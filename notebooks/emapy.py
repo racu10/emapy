@@ -52,8 +52,12 @@ def getDistance(long1, lat1, long2, lat2):
     
     r = 6371000 #radio terrestre medio, en metros 
     c = math.pi/180 #constante para transformar grados en radianes
- 
-    return 2*r*math.asin(math.sqrt(math.sin(c*(lat2-lat1)/2)**2 + math.cos(c*lat1)*math.cos(c*lat2)*math.sin(c*(long2-long1)/2)**2))
+
+    #Haversine distance
+    return 2*r*math.asin(math.sqrt(
+            math.sin(c*(lat2-lat1)/2)**2
+            + math.cos(c*lat1)*math.cos(c*lat2)
+            * math.sin(c*(long2-long1)/2)**2))
 
 
 # In[3]:
@@ -87,6 +91,53 @@ def getDistanceInKm(long1, lat1, long2, lat2):
 
 
 # In[4]:
+
+def getLessDistanceInKmBtwnCoordAndInfoStructureWithJumps(posX, posY, allData, jump, isInAllData = False):
+    """    getLessDistanceInKmBtwnCoordAndInfoStructureWithJumps(posX, posY, allData, jump, isInAllData):
+
+    Get less distance between Info Structure and position.
+    
+    Parameters
+    ----------
+    posX : float
+        Longitude coordinate to evaluate.
+    posY : float
+            Latitude coordinate to evaluate.
+    allData : float
+            Longitude 2nd coordinate.  
+    jump : Integer
+            Number of jumps to get distance.
+    isInAllData : Boolean
+            If position is in allData and want to skip own position.
+    Returns
+    -------
+    list
+    Gets in first item the distance and the sencond the full data.
+    """
+    less = []
+    
+    tmpX = posX
+    tmpY = posY
+    for x in range(jump):
+        actualLessDist = float("inf")
+        for data in allData: 
+            d = float("inf")
+            if isInAllData == True:
+                if tmpX != data["geometry"][0] and tmpY != data["geometry"][1] and posX != data["geometry"][0] and posY != data["geometry"][1]:
+                        d = getDistanceInKm(tmpX, tmpY, data["geometry"][0], data["geometry"][1])
+            else:
+                d = getDistanceInKm(tmpX, tmpY, data["geometry"][0], data["geometry"][1])
+            if d < actualLessDist:
+                actualLessDist = d
+                less = [actualLessDist,data]
+        
+        if len(allData) > 0:
+            tmpX = less[1]["geometry"][0]
+            tmpY = less[1]["geometry"][1]
+    return less
+
+
+# In[5]:
 
 def utmToLatLng(zone, easting, northing, northernHemisphere=True):
 
@@ -167,7 +218,7 @@ def utmToLatLng(zone, easting, northing, northernHemisphere=True):
     return (latitude, longitude)
 
 
-# In[5]:
+# In[6]:
 
 def getDataOfCsv(name, sep=';'):
     import pandas as pd
@@ -195,7 +246,7 @@ def getDataOfCsv(name, sep=';'):
     return allData
 
 
-# In[6]:
+# In[7]:
 
 def is_number(s):
     try:
@@ -213,7 +264,7 @@ def is_number(s):
     return False
 
 
-# In[7]:
+# In[8]:
 
 def getPointOfStreet(streetName, boundingBoxSearch): 
     """    getPointOfStreet(streetName, boundingBoxSearch)
@@ -238,7 +289,7 @@ def getPointOfStreet(streetName, boundingBoxSearch):
     return apiOverPass.Get(sql)
 
 
-# In[8]:
+# In[9]:
 
 def getPointOfStreetPolygon(streetName, polygon): 
     """    getPointOfStreet(streetName, polygon)
@@ -264,7 +315,7 @@ def getPointOfStreetPolygon(streetName, polygon):
     return apiOverPass.Get(sql)
 
 
-# In[9]:
+# In[10]:
 
 def getAllStreetPointsLookingForName(allStreetInfoOSM, streetName):
     lstPoints = []
@@ -278,7 +329,7 @@ def getAllStreetPointsLookingForName(allStreetInfoOSM, streetName):
     return lstPoints
 
 
-# In[10]:
+# In[11]:
 
 def fromAllStreetsGetWithStreetNameTheLocationMostNear(allStreetInfoOSM, streetName, xtest, ytest):
     lstPoints = getAllStreetPointsLookingForName(allStreetInfoOSM, streetName)
@@ -286,7 +337,7 @@ def fromAllStreetsGetWithStreetNameTheLocationMostNear(allStreetInfoOSM, streetN
     return fromPointsOfStretGetBestUbicationXY(lstPoints, xtest, ytest)
 
 
-# In[11]:
+# In[12]:
 
 def fromPointsOfStretGetBestUbicationXY(pointsOfStreet, xtest, ytest):
     """    fromPointsOfStretGetBestUbicationMinXY(pointsOfStreet, xtest, ytest):
@@ -321,7 +372,7 @@ def fromPointsOfStretGetBestUbicationXY(pointsOfStreet, xtest, ytest):
     return cx,cy
 
 
-# In[12]:
+# In[13]:
 
 def fromPointsOfStretGetBestUbicationMinXYOSMStructure(pointsOfStreet, xtest, ytest):
     """    fromPointsOfStretGetBestUbicationMinXY(pointsOfStreet, xtest, ytest):
@@ -369,7 +420,7 @@ def fromPointsOfStretGetBestUbicationMinXYOSMStructure(pointsOfStreet, xtest, yt
     return cx,cy
 
 
-# In[13]:
+# In[14]:
 
 def pandasReadJson(url):
     """    pandasReadJson(url):
@@ -391,12 +442,13 @@ def pandasReadJson(url):
     return pd.read_json(url)
 
 
-# In[14]:
+# In[15]:
 
 def getNowBikesInBcn():
     """    getNowBikesInBcn():
 
-    From api citybike get json of actual moment of the bikes in barcelona
+    From api citybike get json of actual moment 
+    of the bikes in barcelona
     
     Parameters
     ----------
@@ -412,7 +464,7 @@ def getNowBikesInBcn():
     return df
 
 
-# In[15]:
+# In[16]:
 
 def decodeToUTF8(text):
     try:
@@ -422,7 +474,7 @@ def decodeToUTF8(text):
     return text
 
 
-# In[16]:
+# In[17]:
 
 def getAllBarrisBCNPoligonBox(path = 'alldata/barris.geojson', columnName='neighbourhood', orderedXY = False):
     """    getAllBarrisBCNPoligonBox(path)
@@ -434,7 +486,8 @@ def getAllBarrisBCNPoligonBox(path = 'alldata/barris.geojson', columnName='neigh
     path : String
     Path of the file
     columnName : String
-    Name of the column that contains the String info inside properties.
+    Name of the column that contains 
+    the String info inside properties.
             
     Returns
     -------
@@ -460,7 +513,7 @@ def getAllBarrisBCNPoligonBox(path = 'alldata/barris.geojson', columnName='neigh
             
 
 
-# In[17]:
+# In[18]:
 
 def polygonArrayToOSMstructure(polygon):
     """    polygonArrayToOSMstructure(polygon)
@@ -470,7 +523,9 @@ def polygonArrayToOSMstructure(polygon):
     Parameters
     ----------
     polygon : Array
-    Array that contains the poligon separated [[lat,long], [lat', long'], [lat'', long''], ...] same as [[y,x],[y',x'], [y'',x''], ...] 
+    Array that contains the poligon separated [[lat,long], 
+    [lat', long'], [lat'', long''], ...] 
+    same as [[y,x],[y',x'], [y'',x''], ...] 
     representation of OSM return.
             
     Returns
@@ -485,7 +540,7 @@ def polygonArrayToOSMstructure(polygon):
     return s
 
 
-# In[18]:
+# In[19]:
 
 def getAllNodesIntoPolygon(polygon, timeOut = 30):
     """    getAllNodesIntoPolygon(polygon)
@@ -495,7 +550,9 @@ def getAllNodesIntoPolygon(polygon, timeOut = 30):
     Parameters
     ----------
     polygon : Array
-    Array that contains the poligon separated [[lat,long], [lat', long'], [lat'', long''], ...] same as [[y,x],[y',x'], [y'',x''], ...] 
+    Array that contains the poligon separated 
+    [[lat,long], [lat', long'], [lat'', long''], ...] 
+    same as [[y,x],[y',x'], [y'',x''], ...] 
     representation of OSM return.
             
     Returns
@@ -514,7 +571,7 @@ def getAllNodesIntoPolygon(polygon, timeOut = 30):
     return allData
 
 
-# In[19]:
+# In[20]:
 
 def getAllNodesIntoBoundingBox(boundingBoxSearch, timeOut = 30):
     """    getAllNodesIntoPolygon(polygon)
@@ -542,7 +599,7 @@ def getAllNodesIntoBoundingBox(boundingBoxSearch, timeOut = 30):
     return allData
 
 
-# In[20]:
+# In[21]:
 
 def getAllNodesIntoPolygonErrorTimeOut(sql, wait):
     allData = []
@@ -558,7 +615,7 @@ def getAllNodesIntoPolygonErrorTimeOut(sql, wait):
     return allData
 
 
-# In[21]:
+# In[22]:
 
 def getAmenityInfoIntoPolygon(polygon, amenityType='pub', timeOutWaitExcept = 30):
     #http://wiki.openstreetmap.org/wiki/Key:amenity
@@ -573,7 +630,7 @@ def getAmenityInfoIntoPolygon(polygon, amenityType='pub', timeOutWaitExcept = 30
     return allData
 
 
-# In[22]:
+# In[23]:
 
 def getAmenityInfoIntoBoundingBox(boundingBoxSearch, amenityType='pub', timeOutWaitExcept = 30):
     #http://wiki.openstreetmap.org/wiki/Key:amenity
@@ -586,7 +643,7 @@ def getAmenityInfoIntoBoundingBox(boundingBoxSearch, amenityType='pub', timeOutW
     return allData
 
 
-# In[23]:
+# In[24]:
 
 def getNodeInfo(idNode):
     osm = OsmApi()
@@ -594,7 +651,7 @@ def getNodeInfo(idNode):
     return T
 
 
-# In[24]:
+# In[25]:
 
 def getInfoOfOSMSearch(feature):
     feat = feature["features"]
@@ -620,7 +677,7 @@ def getInfoOfOSMSearch(feature):
     
 
 
-# In[25]:
+# In[26]:
 
 def coordInsidePolygon(x, y, polygon):
     """    coordInsidePolygon(x, y, polygon)
@@ -659,7 +716,7 @@ def coordInsidePolygon(x, y, polygon):
     return inside
 
 
-# In[26]:
+# In[27]:
 
 def getPerimeterOfDictWithPolygons(dictionary):
     arrPoly = []
@@ -691,7 +748,7 @@ def getPerimeterOfDictWithPolygons(dictionary):
     return tmpArr
 
 
-# In[27]:
+# In[28]:
 
 def transformArrYXToXY(arrYX):
     points = []
@@ -707,7 +764,7 @@ def transformArrYXToXYList(arrYX):
 
 
 
-# In[28]:
+# In[29]:
 
 def removeIntInxString(txt, sep = '.'):
     s = txt.split(sep)
@@ -721,7 +778,7 @@ def removeIntInxString(txt, sep = '.'):
         return txt.strip()
 
 
-# In[29]:
+# In[30]:
 
 def createGeoJSON(features):# [[coord1,cord2,cord3,...], row, column]
     gjson = '{"type":"FeatureCollection", '
@@ -783,7 +840,7 @@ def createGeoJSON(features):# [[coord1,cord2,cord3,...], row, column]
 
 
 
-# In[30]:
+# In[31]:
 
 def calculateIncOfDistance(posX1, posY1, posX2, posY2, incrementKm):
     d = getDistanceInKm(posX1, posY1, posX2, posY2)
@@ -795,7 +852,7 @@ def calculateIncOfDistance(posX1, posY1, posX2, posY2, incrementKm):
     return (r1 / inc * 1.0, r2 / inc * 1.0)
 
 
-# In[31]:
+# In[32]:
 
 def createFileWithText(fullPath, ext, text):
     import io
@@ -803,7 +860,7 @@ def createFileWithText(fullPath, ext, text):
         file.write(text)
 
 
-# In[32]:
+# In[33]:
 
 def divideBoundingBoxBySurfaceUnitSavedGeoJSON(boundingBox, surfaceXKm, surfaceYKm, nameGeoJSON): 
     minLat = boundingBox[1]
@@ -874,27 +931,27 @@ def divideBoundingBoxBySurfaceUnitSavedGeoJSON(boundingBox, surfaceXKm, surfaceY
 
 
 
-# In[33]:
+# In[34]:
 
 def mapCreation(centerX, centerY):
     map = folium.Map(location=[centerX,centerY])
     return map
 
 
-# In[34]:
+# In[35]:
 
 def mapAddMarker(map, coordX, coordY, icn = 'glyphicon-certificate', color = 'blue', popuName = ''):
     folium.Marker([coordX, coordY], popup=popuName,
                    icon = folium.Icon(icon=icn,color = color)).add_to(map)
 
 
-# In[35]:
+# In[36]:
 
 def mapAddLine(map, arrPoints, lineColor="#000000",weight=2.5, opacity=1):
     folium.PolyLine(arrPoints, color=lineColor, weight=weight, opacity=opacity).add_to(map)
 
 
-# In[36]:
+# In[37]:
 
 def mapAddGeoJsonToMap(map, pathGeoJson):
     folium.GeoJson(open(pathGeoJson),
@@ -902,7 +959,7 @@ def mapAddGeoJsonToMap(map, pathGeoJson):
                   ).add_to(map)
 
 
-# In[37]:
+# In[38]:
 
 def mapWithMarkerCluster(map, name):
     markerCluster = folium.MarkerCluster(name).add_to(map)
@@ -913,14 +970,39 @@ def mapAddMarkerToCluster(cluster, coordX, coordY, icn = 'glyphicon-certificate'
     folium.Marker([coordX,coordY], icon=folium.Icon(icon=icn, color=iconcolor),popup = poppin).add_to(cluster)
 
 
-# In[38]:
+# In[39]:
 
 def mapAddRegularPolygonMarker(map, points, color = '#0000FF', txtOfPoppup = "", sizeX = 200, sizeY = 50):
     poppin = folium.Popup(html=folium.element.IFrame(html=txtOfPoppup,width=sizeX,height=sizeY))
     folium.RegularPolygonMarker(points, weight=2.5, opacity=1, fill_color=color, fill_opacity=1, popup=poppin).add_to(map)
 
 
-# In[39]:
+# In[40]:
+
+def mapAddStructureSimpleMarker(map, allData, icn = 'glyphicon-certificate', color = 'blue', popupPropertie = 'name'):
+    dataNames = []
+    idNodes = []
+    for data in allData:
+        if data['type'].strip().lower() == 'point': 
+            prop = data['properties']
+            name = ''
+            if popupPropertie in prop:
+                name = prop[popupPropertie]
+                dataNames.append(name)
+            idNode = str(data['geometry'][0]) +  str(data['geometry'][1]) + name
+
+            if idNode not in idNodes:
+                idNodes.append(idNode)
+                mapAddMarker(
+                    map,
+                    data['geometry'][0],
+                    data['geometry'][1],
+                    icn,
+                    color,
+                    name)
+
+
+# In[41]:
 
 def mapChoropleth(map, 
                   geojsonPath = 'myGeoJSON.geojson', 
@@ -945,13 +1027,13 @@ def mapChoropleth(map,
              legend_name=legendName)
 
 
-# In[40]:
+# In[42]:
 
 def mapSave(map, saveFileName = 'map.html'):
     map.save(saveFileName)
 
 
-# In[41]:
+# In[43]:
 
 #POLYGON
 #POINTS x, y o UTMX UTMY or Ids
@@ -1048,7 +1130,7 @@ def getDatabase(name,
 
 
 
-# In[42]:
+# In[44]:
 
 #http://wiki.openstreetmap.org/wiki/Key:amenity
 
